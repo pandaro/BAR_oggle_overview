@@ -20,10 +20,15 @@ end
 local springMaxZoom = nil
 local overheadMaxZoom = nil
 local oldCameraState = nil
+local spTraceScreenRay = Spring.TraceScreenRay
+local spGetMouseState = Spring.GetMouseState
+local spGetCameraState = Spring.GetCameraState
+local spSetCameraState = Spring.SetCameraState
+local spGetConfigInt = Spring.GetConfigInt
 
 local function screenToMapPos()
-    local mx,my= Spring.GetMouseState() 
-    local _, pos = Spring.TraceScreenRay(mx, my, true, false, false, false)
+    local mx,my= spGetMouseState() 
+    local _, pos = spTraceScreenRay(mx, my, true, false, false, false)
     if not pos then
         return
     end
@@ -32,7 +37,7 @@ end
 
 local function cameraHandler(orientation,percentage,zoom,transition)
     
-    local camstate = Spring.GetCameraState()
+    local camstate = spGetCameraState()
     local current_rx
     local pos = screenToMapPos()
     if pos then
@@ -45,7 +50,7 @@ local function cameraHandler(orientation,percentage,zoom,transition)
     
     if not oldCameraState  then
         --Spring.Echo('oldCameraState',oldCameraState)
-        oldCameraState = Spring.GetCameraState()
+        oldCameraState = spGetCameraState()
         if not percentage and not orientation then
             camstate.dist = zoom
             --Spring.Echo('set zoom at',zoom)
@@ -59,7 +64,7 @@ local function cameraHandler(orientation,percentage,zoom,transition)
             camstate.dist = camstate.dist + (orientation * (springMaxZoom / 100 * zoom))
             --Spring.Echo('add zoom percentage',zoom)
         end
-        local cameraSet = Spring.SetCameraState(camstate, transitionTime)
+        local cameraSet = spSetCameraState(camstate, transitionTime)
         if cameraSet then
             --Spring.Echo('camera go on overview')
             
@@ -76,7 +81,7 @@ local function cameraHandler(orientation,percentage,zoom,transition)
         oldCameraState.pz = pos[3]
     end 
     
-    local cameraSet = Spring.SetCameraState(oldCameraState, transitionTime)
+    local cameraSet = spSetCameraState(oldCameraState, transitionTime)
     if not cameraSet then Spring.Echo('throw an error in zoom_level_custom') return end
     oldCameraState = nil
     --Spring.Echo('update camera state')
@@ -125,7 +130,7 @@ local function zoomHandler(_, _, args, _, isRepeat)
 end
 
 function widget:Initialize()
-    local minZoom = Spring.GetConfigInt("MinimumCameraHeight",300)
+    local minZoom = spGetConfigInt("MinimumCameraHeight",300)
     springMaxZoom = math.max(Game.mapSizeX/8,Game.mapSizeZ/8) * Game.squareSize * 1.333
     overheadMaxZoom = 9.5 * math.max(Game.mapSizeX/8,Game.mapSizeZ/8) * Spring.GetConfigFloat('OverheadMaxHeightFactor')
     
